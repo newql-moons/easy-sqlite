@@ -7,6 +7,22 @@ class _Query(object):
         self.__tab = model
         self.__script = ''
         self.__params = []
+        
+    def __iter__(self):
+        if len(self.__params):
+            cs = db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
+        else:
+            cs = db._instance(self.__tab.Meta.database).execute(self.__script)
+        for row in cs:
+            yield self.__tab(**row)
+
+    def exec(self):
+        if len(self.__params):
+            print(self.__script)
+            db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
+        else:
+            db._instance(self.__tab.Meta.database).execute(self.__script)
+        db._instance(self.__tab.Meta.database).commit()
 
     @property
     def script(self):
@@ -25,9 +41,11 @@ class _Query(object):
                     sql += ' NOT NULL'
                 if w.default:
                     sql += (' DEFAULT \'' + str(w.default) + '\'')
+                if w.AUTOINCREMENT:
+                    sql += ' AUTOINCREMENT'
                 sql += ', '
             if isinstance(w, models.IntField):
-                sql %= 'INT'
+                sql %= 'INTEGER'
             if isinstance(w, models.RealField):
                 sql %= 'REAL'
             if isinstance(w, models.NoneField):
@@ -37,6 +55,9 @@ class _Query(object):
             if isinstance(w, models.TextField):
                 sql %= 'TEXT'
         self.__script = (sql[:len(sql) - 2] + ' )')
+
+    def _drop(self):
+        self.__script = 'DROP TABLE %s' % self.__tab.Meta.name
 
     def _insert(self, item):
         sql = 'INSERT INTO %s ( ' % self.__tab.Meta.name
@@ -54,6 +75,9 @@ class _Query(object):
     def _select_all(self):
         self.__script = ('SELECT * FROM %s' % self.__tab.Meta.name)
 
+    def _distinct(self):
+        self.__script = ('SELECT DISTINCT * FROM %s' % self.__tab.Meta.name)
+
     def _update(self, **kwargs):
         self.__script = 'UPDATE %s SET ' % self.__tab.Meta.name
         tmp = ''
@@ -70,12 +94,24 @@ class _Query(object):
         if isinstance(condition, str):
             self.__script += condition
         else:
-            for k, w in kwargs.items():
+            if len(kwargs) > 1:
+                tmp = ''
+                for k, w in kwargs.items():
+                    self.__params.append(w)
+                    tmp += (' AND %s = ?' % k)
+                self.__script += tmp[4:]
+            else:
+                k, w = list(kwargs.items())[0]
                 self.__params.append(w)
                 self.__script += ('%s = ?' % k)
 
     def where(self, condition=None, **kwargs):
         self.__script += ' WHERE '
+        self._condition(condition, **kwargs)
+        return self
+
+    def having(self, condition=None, **kwargs):
+        self.__script += ' HAVING '
         self._condition(condition, **kwargs)
         return self
 
@@ -93,17 +129,32 @@ class _Query(object):
         self.__script += (' LIMIT %s' % num)
         return self
 
-    def __iter__(self):
-        if len(self.__params):
-            cs = db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
-        else:
-            cs = db._instance(self.__tab.Meta.database).execute(self.__script)
-        for row in cs:
-            yield self.__tab(**row)
+    def offset(self, index):
+        self.__script += (' OFFSET %s' % index)
+        return self
 
-    def exec(self):
-        if len(self.__params):
-            db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
-        else:
-            db._instance(self.__tab.Meta.database).execute(self.__script)
-        db._instance(self.__tab.Meta.database).commit()
+    def order_by(self, *args):
+        tmp = ' ORDER BY'
+
+        for column in args:
+            tmp += (' %s,' % column)
+        self.__script += tmp[:len(tmp) - 1]
+        return self
+
+    def group_by(self, *args):
+        tmp = ' GROUP BY'
+
+        for column in args:
+            tmp += (' %s,' % column)
+        self.__script += tmp[:len(tmp) - 1]
+        return self
+
+    @property
+    def ASC(self):
+        self.__script += ' ASC'
+        return self
+
+    @property
+    def DESC(self):
+        self.__script += ' DESC'
+        return self

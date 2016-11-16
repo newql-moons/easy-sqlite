@@ -25,9 +25,21 @@ class Model(object):
         q.exec()
 
     @classmethod
+    def drop(cls):
+        q = util._Query(cls)
+        q._drop()
+        q.exec()
+
+    @classmethod
     def all(cls):
         q = util._Query(cls)
         q._select_all()
+        return q
+
+    @classmethod
+    def distinct(cls):
+        q = util._Query(cls)
+        q._distinct()
         return q
 
     @classmethod
@@ -56,10 +68,16 @@ class Model(object):
 
 
 class _Field(object):
-    def __init__(self, default=None, PRIMARY_KEY=False, NOT_NULL=False):
+    def __init__(self,
+                 default=None,
+                 PRIMARY_KEY=False,
+                 NOT_NULL=False,
+                 AUTOINCREMENT=False):
+
         self.__PRIMARY_KEY = PRIMARY_KEY
         self.__NOT_NULL = NOT_NULL or PRIMARY_KEY
         self.__default = default
+        self.__AUTOINCREMENT = AUTOINCREMENT
 
     @property
     def PRIMARY_KEY(self):
@@ -72,6 +90,10 @@ class _Field(object):
     @property
     def default(self):
         return self.__default
+
+    @property
+    def AUTOINCREMENT(self):
+        return self.__AUTOINCREMENT
 
 
 class TextField(_Field):
