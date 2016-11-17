@@ -42,6 +42,7 @@ class Student(models.Model):
 在使用这些`Model`前您还需要连接数据库
 
 >连接单一数据库
+
 ```python
 from ezsqlite import db
 
