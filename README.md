@@ -50,6 +50,7 @@ DB_PATH = 'db.sqlite3'
 
 db.connect(DB_PATH)
 ```
+
 >连接多个数据库
 
 ```python
