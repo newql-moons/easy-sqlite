@@ -37,6 +37,12 @@ class Model(object):
         return q
 
     @classmethod
+    def count(cls):
+        q = util._Query(cls)
+        q._count()
+        return q
+
+    @classmethod
     def distinct(cls):
         q = util._Query(cls)
         q._distinct()

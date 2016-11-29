@@ -15,7 +15,7 @@
 CREATE TABLE student (
   id INTEGER PRIMARY KEY,
   name TEXT NOT NULL,
-  age INTEGER 
+  age INTEGER
 );
 ```
 
@@ -85,12 +85,12 @@ Student(id=1, name='李华', age=20).save()
 
 这时候查询student表格
 
-|id|name|age| 
+|id|name|age|
 |:---:|:---:|:---:|
- 1  |李华 | 20
- 
+|1|李华|20|
+
  类似地，再向`student`中插入两行数据
- 
+
 ```Python
 Student(id=2, name='月梦书', age=20).save()
 Student(id=3, name='小明', age=18).save()
@@ -98,11 +98,11 @@ Student(id=3, name='小明', age=18).save()
 
 再次查询`student`
 
-|*id*|*name*|*age*| 
+|*id*|*name*|*age*|
 |:---:|:---:|:---:|
-1|李华|20
-2|月梦书|20
-3|小明|18
+|1|李华|20|
+|2|月梦书|20|
+|3|小明|18|
 
 ### 查询
 
@@ -120,7 +120,7 @@ for item in Stuent.all():
     {'age': 20, 'id': 1, 'name': '李华'}
     {'age': 20, 'id': 2, 'name': '月梦书'}
     {'age': 18, 'id': 3, 'name': '小明'}
-    
+
 也可以这样来访问`student`的每个字段
 
 ```Python
@@ -129,11 +129,11 @@ for item in Stuent.all():
 ```
 
 **终端**
-    
+
     id: 1, name: 李华, age: 20
     id: 2, name: 月梦书, age: 20
     id: 3, name: 小明, age: 18
-    
+
 `Student.all()`会返回一个迭代对象，如果您需要一个查询结果的`list`,您可以这样
 
 ```Python
@@ -149,6 +149,6 @@ for item in Student.search(age=20):
 ```
 
 **终端**
-    
+
     {'age': 20, 'id': 1, 'name': '李华'}
     {'age': 20, 'id': 2, 'name': '月梦书'}

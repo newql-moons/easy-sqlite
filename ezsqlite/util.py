@@ -24,6 +24,23 @@ class _Query(object):
             db._instance(self.__tab.Meta.database).execute(self.__script)
         db._instance(self.__tab.Meta.database).commit()
 
+    def items(self):
+        return list(self)
+
+    def item(self):
+        try:
+            return list(self)[0]
+        except:
+            return None
+
+    @property
+    def number(self):
+        if len(self.__params):
+            cs = db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
+        else:
+            cs = db._instance(self.__tab.Meta.database).execute(self.__script)
+        return cs.fetchone()[0]
+
     @property
     def script(self):
         script = self.__script.replace('?', '%s') % tuple(self.__params)
@@ -77,6 +94,9 @@ class _Query(object):
 
     def _distinct(self):
         self.__script = ('SELECT DISTINCT * FROM %s' % self.__tab.Meta.name)
+
+    def _count(self):
+        self.__script = ('SELECT COUNT(*) FROM %s' % self.__tab.Meta.name)
 
     def _update(self, **kwargs):
         self.__script = 'UPDATE %s SET ' % self.__tab.Meta.name
