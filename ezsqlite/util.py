@@ -18,7 +18,6 @@ class _Query(object):
 
     def exec(self):
         if len(self.__params):
-            print(self.__script)
             db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
         else:
             db._instance(self.__tab.Meta.database).execute(self.__script)
@@ -34,16 +33,20 @@ class _Query(object):
             return None
 
     @property
-    def number(self):
+    def count(self):
+        script = self.__script.replace('SELECT *', 'SELECT COUNT(*)')
         if len(self.__params):
-            cs = db._instance(self.__tab.Meta.database).execute(self.__script, self.__params)
+            cs = db._instance(self.__tab.Meta.database).execute(script, self.__params)
         else:
-            cs = db._instance(self.__tab.Meta.database).execute(self.__script)
+            cs = db._instance(self.__tab.Meta.database).execute(script)
         return cs.fetchone()[0]
 
     @property
     def script(self):
-        script = self.__script.replace('?', '%s') % tuple(self.__params)
+        if len(self.__params):
+            script = self.__script.replace('?', '%s') % tuple(self.__params)
+        else:
+            script = self.__script
         return script + ';'
 
     def _create(self):
